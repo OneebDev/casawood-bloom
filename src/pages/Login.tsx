@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, LogIn } from "lucide-react";
-import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -117,66 +116,70 @@ const Login = () => {
         <title>{isLogin ? "Login" : "Sign Up"} | CasaWood</title>
         <meta name="description" content="Login or create an account at CasaWood to access your orders and wishlist." />
       </Helmet>
-      <Layout>
-        <div className="min-h-[80vh] flex items-center justify-center py-12 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md"
-          >
-            <div className="bg-card rounded-2xl p-8 shadow-casawood border border-border">
-              {/* Logo/Brand */}
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-display font-bold text-casawood-charcoal">
-                  {isLogin ? "Welcome Back" : "Create Account"}
-                </h1>
-                <p className="text-muted-foreground mt-2">
-                  {isLogin 
-                    ? "Sign in to your CasaWood account" 
-                    : "Join CasaWood for exclusive offers"}
-                </p>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 py-10 bg-[#FFFDF7]">
+        {/* Brand wordmark */}
+        <div className="mb-10 text-3xl font-display font-semibold tracking-wide">
+          <span className="text-casawood-charcoal">Casa</span>
+          <span className="text-[#F5B400]">Wood</span>
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md"
+        >
+          <div className="bg-card rounded-2xl p-8 shadow-casawood border border-border">
+            {/* Logo/Brand */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-display font-semibold text-casawood-charcoal">
+                {isLogin ? "Sign in" : "Create account"}
+              </h1>
+              <p className="text-sm text-muted-foreground mt-2">
+                {isLogin
+                  ? "Choose how you’d like to sign in"
+                  : "Join CasaWood today"}
+              </p>
+            </div>
+
+            {/* Google Sign In */}
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full mb-6 h-12 px-6 gap-3 rounded-full border border-[#E4E0D6] bg-white text-sm font-medium text-[#3c4043] shadow-none hover:bg-[#fafafa] hover:text-[#3c4043]"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="#EA4335"
+                  d="M12 10.2v3.6h5.02c-.22 1.15-.9 2.13-1.92 2.78v2.31h3.1c1.82-1.68 2.88-4.16 2.88-7.09 0-.68-.06-1.33-.18-1.96H12z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M6.62 14.32 5.98 14.8l-2.48 1.9C5.14 19.86 8.3 22 12 22c2.43 0 4.47-.8 5.96-2.11l-3.1-2.31c-.86.58-1.96.94-2.86.94-2.2 0-4.07-1.48-4.74-3.54z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M3.5 7.7A9.96 9.96 0 0 0 2 12c0 1.58.38 3.06 1.03 4.39l3.59-2.78A5.94 5.94 0 0 1 6.06 12c0-.62.11-1.22.3-1.79z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M12 6.04c1.32 0 2.5.45 3.43 1.32l2.57-2.57C16.45 3.56 14.43 2.8 12 2.8 8.3 2.8 5.14 4.94 3.5 7.7l3.86 2.51C7.93 7.14 9.8 6.04 12 6.04z"
+                />
+              </svg>
+              <span>Continue with Google</span>
+            </Button>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border"></div>
               </div>
-
-              {/* Google Sign In */}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full mb-6 gap-2"
-                onClick={handleGoogleSignIn}
-                disabled={isLoading}
-              >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path
-                    fill="currentColor"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="currentColor"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
-                </svg>
-                Continue with Google
-              </Button>
-
-              <div className="relative mb-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
-                </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
               </div>
+            </div>
 
-              {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
@@ -285,10 +288,13 @@ const Login = () => {
               </p>
             </div>
           </motion.div>
+          <div className="mt-8 text-xs text-[#4A7A3C] flex items-center justify-center gap-8">
+            <Link to="/privacy-policy" className="hover:underline">Privacy policy</Link>
+            <Link to="/terms-of-service" className="hover:underline">Terms of service</Link>
+          </div>
         </div>
-      </Layout>
-    </>
+      </>
   );
-};
+}
 
 export default Login;

@@ -78,7 +78,7 @@ const About = () => {
               <motion.span
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="inline-block text-casawood-green font-medium mb-4"
+                className="inline-block text-casawood-green text-3xl font-display font-bold mb-4"
               >
                 Our Story
               </motion.span>
@@ -86,7 +86,7 @@ const About = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="text-4xl md:text-5xl font-display font-bold text-casawood-charcoal mb-6"
+                className="text-5xl md:text-6xl font-display font-extrabold text-casawood-charcoal mb-6"
               >
                 Crafting Furniture, Creating Homes
               </motion.h1>

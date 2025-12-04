@@ -27,6 +27,8 @@ import Careers from "./pages/Careers";
 import Blog from "./pages/Blog";
 import Sustainability from "./pages/Sustainability";
 import Press from "./pages/Press";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -63,6 +65,8 @@ const App = () => (
                   <Route path="/blog" element={<Blog />} />
                   <Route path="/sustainability" element={<Sustainability />} />
                   <Route path="/press" element={<Press />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>

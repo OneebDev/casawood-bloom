@@ -11,7 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
-import { sendCheckoutEmail } from "@/lib/emailjs";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -59,31 +58,39 @@ const Checkout = () => {
       `${item.product.name} (Qty: ${item.quantity}) - Rs. ${(item.product.price * item.quantity).toLocaleString("en-IN")}`
     ).join("\n");
 
-    // Send email notification
-    const emailResult = await sendCheckoutEmail({
-      to_email: "oneeb593@gmail.com",
-      customer_name: formData.fullName,
-      customer_email: formData.email,
-      customer_phone: formData.phone,
-      shipping_address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      postal_code: formData.postalCode,
-      order_notes: formData.notes || "No special notes",
-      order_items: orderItems,
-      subtotal: `Rs. ${getCartTotal().toLocaleString("en-IN")}`,
-      shipping: shippingCost === 0 ? "Free" : `Rs. ${shippingCost}`,
-      total: `Rs. ${totalAmount.toLocaleString("en-IN")}`,
-    });
+    try {
+      const response = await fetch("/api/send-checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          postalCode: formData.postalCode,
+          notes: formData.notes,
+          orderItems,
+          subtotal: `Rs. ${getCartTotal().toLocaleString("en-IN")}`,
+          shipping: shippingCost === 0 ? "Free" : `Rs. ${shippingCost}`,
+          total: `Rs. ${totalAmount.toLocaleString("en-IN")}`,
+        }),
+      });
 
-    if (emailResult.success) {
+      if (!response.ok) {
+        throw new Error("Failed to send order email");
+      }
+
       clearCart();
       toast({
         title: "Order Placed Successfully!",
         description: "Thank you for your order. You will receive a confirmation email shortly.",
       });
       navigate("/");
-    } else {
+    } catch (error) {
       // Still process order even if email fails
       clearCart();
       toast({

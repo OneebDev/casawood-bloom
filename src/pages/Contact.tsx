@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { sendContactEmail } from "@/lib/emailjs";
 
 const contactInfo = [
   {
@@ -52,22 +51,31 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const emailResult = await sendContactEmail({
-      to_email: "oneeb593@gmail.com",
-      from_name: formData.name,
-      from_email: formData.email,
-      phone: formData.phone || "Not provided",
-      subject: formData.subject,
-      message: formData.message,
-    });
+    try {
+      const response = await fetch("/api/send-contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+        }),
+      });
 
-    if (emailResult.success) {
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
       toast({
         title: "Message Sent!",
         description: "Thank you for contacting us. We'll get back to you soon.",
       });
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-    } else {
+    } catch (error) {
       toast({
         title: "Message Received",
         description: "Thank you for reaching out. We'll contact you shortly.",
