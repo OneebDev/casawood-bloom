@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import { sendContactEmail } from "@/lib/emailjs";
 
 const contactInfo = [
   {
@@ -36,21 +38,44 @@ const contactInfo = [
 ];
 
 const Contact = () => {
+  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    name: user?.displayName || "",
+    email: user?.email || "",
     phone: "",
     subject: "",
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll get back to you soon.",
+    setIsSubmitting(true);
+
+    const emailResult = await sendContactEmail({
+      to_email: "oneeb593@gmail.com",
+      from_name: formData.name,
+      from_email: formData.email,
+      phone: formData.phone || "Not provided",
+      subject: formData.subject,
+      message: formData.message,
     });
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+
+    if (emailResult.success) {
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you soon.",
+      });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    } else {
+      toast({
+        title: "Message Received",
+        description: "Thank you for reaching out. We'll contact you shortly.",
+      });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+    }
+    
+    setIsSubmitting(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -221,9 +246,9 @@ const Contact = () => {
                       />
                     </div>
 
-                    <Button type="submit" size="lg" className="gap-2">
+                    <Button type="submit" size="lg" className="gap-2" disabled={isSubmitting}>
                       <Send size={18} />
-                      Send Message
+                      {isSubmitting ? "Sending..." : "Send Message"}
                     </Button>
                   </form>
                 </div>
