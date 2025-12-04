@@ -9,15 +9,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { sendCheckoutEmail } from "@/lib/emailjs";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
+    fullName: user?.displayName || "",
+    email: user?.email || "",
     phone: "",
     address: "",
     city: "",
@@ -36,7 +39,7 @@ const Checkout = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -51,15 +54,46 @@ const Checkout = () => {
 
     setIsSubmitting(true);
 
-    // Simulate order processing
-    setTimeout(() => {
+    // Prepare order items for email
+    const orderItems = items.map(item => 
+      `${item.product.name} (Qty: ${item.quantity}) - Rs. ${(item.product.price * item.quantity).toLocaleString("en-IN")}`
+    ).join("\n");
+
+    // Send email notification
+    const emailResult = await sendCheckoutEmail({
+      to_email: "oneeb593@gmail.com",
+      customer_name: formData.fullName,
+      customer_email: formData.email,
+      customer_phone: formData.phone,
+      shipping_address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      postal_code: formData.postalCode,
+      order_notes: formData.notes || "No special notes",
+      order_items: orderItems,
+      subtotal: `Rs. ${getCartTotal().toLocaleString("en-IN")}`,
+      shipping: shippingCost === 0 ? "Free" : `Rs. ${shippingCost}`,
+      total: `Rs. ${totalAmount.toLocaleString("en-IN")}`,
+    });
+
+    if (emailResult.success) {
       clearCart();
       toast({
         title: "Order Placed Successfully!",
         description: "Thank you for your order. You will receive a confirmation email shortly.",
       });
       navigate("/");
-    }, 1500);
+    } else {
+      // Still process order even if email fails
+      clearCart();
+      toast({
+        title: "Order Placed!",
+        description: "Your order has been placed. We'll contact you soon.",
+      });
+      navigate("/");
+    }
+    
+    setIsSubmitting(false);
   };
 
   if (items.length === 0) {

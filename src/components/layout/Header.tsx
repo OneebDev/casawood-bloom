@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,15 @@ import { cn } from "@/lib/utils";
 import { categories } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/hooks/use-toast";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,6 +36,7 @@ const Header = () => {
   const navigate = useNavigate();
   const { getCartCount } = useCart();
   const { getWishlistCount } = useWishlist();
+  const { user, logout } = useAuth();
   const cartCount = getCartCount();
   const wishlistCount = getWishlistCount();
 
@@ -44,6 +55,23 @@ const Header = () => {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery("");
       setIsSearchOpen(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -221,16 +249,69 @@ const Header = () => {
               </Button>
             </Link>
 
-            {/* Account - Hidden on mobile */}
-            <Link to="/auth" className="hidden sm:block">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Account"
-              >
-                <User size={20} />
-              </Button>
-            </Link>
+            {/* Account */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="relative hidden sm:flex"
+                    aria-label="Account"
+                  >
+                    {user.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={user.displayName || "User"} 
+                        className="w-6 h-6 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-semibold">
+                        {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium truncate">
+                      {user.displayName || "User"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/wishlist" className="cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" />
+                      Wishlist
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/track-order" className="cursor-pointer">
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Track Order
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login" className="hidden sm:block">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Account"
+                >
+                  <User size={20} />
+                </Button>
+              </Link>
+            )}
 
             {/* Cart */}
             <Link to="/cart">
@@ -258,6 +339,27 @@ const Header = () => {
           >
             <nav className="container mx-auto px-4 py-4">
               <div className="flex flex-col gap-2">
+                {/* User Info - Mobile */}
+                {user && (
+                  <div className="flex items-center gap-3 p-3 rounded-md bg-secondary mb-2">
+                    {user.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={user.displayName || "User"} 
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold">
+                        {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || "U"}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{user.displayName || "User"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                  </div>
+                )}
+
                 {navLinks.map((link) => (
                   <Link
                     key={link.name}
@@ -273,6 +375,29 @@ const Header = () => {
                     {link.name}
                   </Link>
                 ))}
+
+                {/* Login/Logout - Mobile */}
+                {user ? (
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                    className="py-3 px-4 rounded-md font-medium transition-colors hover:bg-muted text-left flex items-center gap-2 text-destructive"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="py-3 px-4 rounded-md font-medium transition-colors hover:bg-muted flex items-center gap-2"
+                  >
+                    <User size={18} />
+                    Login / Sign Up
+                  </Link>
+                )}
 
                 {/* Mobile Categories */}
                 <div className="mt-4 pt-4 border-t border-border">
