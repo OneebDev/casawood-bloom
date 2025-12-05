@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Product } from "@/data/products";
+import { useAuth } from "@/context/AuthContext";
 
 export interface CartItem {
   product: Product;
@@ -20,6 +21,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem("casawood-cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -30,6 +32,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [items]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
+    if (!user) {
+      return;
+    }
     setItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.product.id === product.id);
       

@@ -32,43 +32,29 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
     return collection(db, "wishlists", user.uid, "items");
   };
 
-  // Load wishlist: guests -> localStorage, logged-in -> Firestore (with live updates)
+  // Load wishlist for logged-in users from Firestore (with live updates)
   useEffect(() => {
-    // If no logged-in user, fall back to localStorage-only wishlist
     if (!user) {
-      const saved = localStorage.getItem("casawood-wishlist");
-      setItems(saved ? JSON.parse(saved) : []);
+      setItems([]);
       return;
     }
 
     const wishlistCol = getWishlistCollection();
     if (!wishlistCol) return;
 
-    // On first login, merge any existing local wishlist into Firestore
-    const saved = localStorage.getItem("casawood-wishlist");
-    if (saved) {
-      const localItems: Product[] = JSON.parse(saved);
-      localItems.forEach((product) => {
-        const ref = doc(wishlistCol, product.id);
-        setDoc(ref, product, { merge: true }).catch((error) => {
-          console.error("Error syncing local wishlist to Firestore:", error);
-        });
-      });
-      localStorage.removeItem("casawood-wishlist");
-    }
-
     // Subscribe to Firestore wishlist for real-time updates
     const unsubscribe = onSnapshot(wishlistCol, (snapshot) => {
       const products: Product[] = snapshot.docs.map((d) => d.data() as Product);
       setItems(products);
-      // Keep a cached copy in localStorage for faster initial load
-      localStorage.setItem("casawood-wishlist", JSON.stringify(products));
     });
 
     return () => unsubscribe();
   }, [user]);
 
   const addToWishlist = (product: Product) => {
+    if (!user) {
+      return;
+    }
     setItems((current) => {
       if (current.some((item) => item.id === product.id)) {
         return current;
@@ -76,16 +62,13 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
       return [...current, product];
     });
 
-    // Persist to Firestore if user is logged in
+    // Persist to Firestore (user is guaranteed to be logged in here)
     const wishlistCol = getWishlistCollection();
     if (wishlistCol) {
       const ref = doc(wishlistCol, product.id);
       setDoc(ref, product).catch((error) => {
         console.error("Error adding wishlist item to Firestore:", error);
       });
-    } else {
-      // Guests: keep using localStorage via effect above
-      localStorage.setItem("casawood-wishlist", JSON.stringify([...items, product]));
     }
   };
 
@@ -125,8 +108,6 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
           console.error("Error fetching wishlist items for clear:", error);
         });
     }
-
-    localStorage.removeItem("casawood-wishlist");
   };
 
   const getWishlistCount = () => {

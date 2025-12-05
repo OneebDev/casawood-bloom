@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -30,6 +31,7 @@ const ProductDetail = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const { addToCart, isInCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
 
   const product = products.find((p) => p.id === id);
   const relatedProducts = products
@@ -53,6 +55,13 @@ const ProductDetail = () => {
   }
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast({
+        title: "Please log in first",
+        description: "You need to log in before adding items to your cart.",
+      });
+      return;
+    }
     addToCart(product, quantity);
     toast({
       title: "Added to cart",
@@ -61,6 +70,13 @@ const ProductDetail = () => {
   };
 
   const handleToggleWishlist = () => {
+    if (!user) {
+      toast({
+        title: "Please log in first",
+        description: "You need to log in before adding items to your wishlist.",
+      });
+      return;
+    }
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
       toast({

@@ -6,13 +6,22 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { useWishlist } from "@/context/WishlistContext";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 const Wishlist = () => {
   const { items, removeFromWishlist, clearWishlist } = useWishlist();
   const { addToCart, isInCart } = useCart();
+  const { user } = useAuth();
 
   const handleAddToCart = (product: typeof items[0]) => {
+    if (!user) {
+      toast({
+        title: "Please log in first",
+        description: "You need to log in before adding items to your cart.",
+      });
+      return;
+    }
     addToCart(product, 1);
     toast({
       title: "Added to cart",

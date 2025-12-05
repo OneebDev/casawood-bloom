@@ -43,6 +43,7 @@ const Login = () => {
           title: "Welcome back!",
           description: "You have successfully logged in.",
         });
+        navigate("/");
       } else {
         if (formData.password !== formData.confirmPassword) {
           toast({
@@ -65,10 +66,11 @@ const Login = () => {
         await signUp(formData.email, formData.password, formData.name);
         toast({
           title: "Account created!",
-          description: "Welcome to CasaWood. Your account has been created.",
+          description: "We have sent a verification link to your email. Please verify your email, then sign in.",
         });
+        // Switch back to login form after signup
+        setIsLogin(true);
       }
-      navigate("/");
     } catch (error: any) {
       let errorMessage = "An error occurred. Please try again.";
       if (error.code === "auth/email-already-in-use") {
@@ -77,6 +79,8 @@ const Login = () => {
         errorMessage = "Invalid email address.";
       } else if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
         errorMessage = "Invalid email or password.";
+      } else if (error.code === "auth/email-not-verified") {
+        errorMessage = "Please verify your email first. Check your inbox for the verification link.";
       } else if (error.code === "auth/invalid-credential") {
         errorMessage = "Invalid credentials. Please check your email and password.";
       }

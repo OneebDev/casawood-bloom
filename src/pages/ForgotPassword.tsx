@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { resetPassword } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email.trim()) {
@@ -23,12 +25,26 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Simulate sending reset email
-    setIsSubmitted(true);
-    toast({
-      title: "Reset link sent",
-      description: "Check your email for password reset instructions.",
-    });
+    try {
+      await resetPassword(email.trim());
+      setIsSubmitted(true);
+      toast({
+        title: "Reset link sent",
+        description: "Check your email for password reset instructions.",
+      });
+    } catch (error: any) {
+      let message = "Failed to send reset link. Please try again.";
+      if (error.code === "auth/user-not-found") {
+        message = "No account found with this email.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "Invalid email address.";
+      }
+      toast({
+        title: "Error",
+        description: message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (

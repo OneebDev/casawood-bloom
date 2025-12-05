@@ -8,7 +8,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  sendEmailVerification,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
@@ -38,6 +39,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      // Never keep unverified users logged in in the app state
+      if (user && !user.emailVerified) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
       setUser(user);
       setLoading(false);
     });
@@ -46,13 +53,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    if (result.user && !result.user.emailVerified) {
+      await signOut(auth);
+      const error: any = new Error('Email not verified');
+      error.code = 'auth/email-not-verified';
+      throw error;
+    }
   };
 
   const signUp = async (email: string, password: string, displayName: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     if (result.user) {
       await updateProfile(result.user, { displayName });
+      // Send email verification link after successful sign up
+      await sendEmailVerification(result.user);
+      // Immediately sign out so the unverified user cannot stay logged in
+      await signOut(auth);
     }
   };
 

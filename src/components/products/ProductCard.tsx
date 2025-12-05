@@ -6,6 +6,7 @@ import { Product } from "@/data/products";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
@@ -16,10 +17,18 @@ interface ProductCardProps {
 const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const { addToCart, isInCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      toast({
+        title: "Please log in first",
+        description: "You need to log in before adding items to your cart.",
+      });
+      return;
+    }
     addToCart(product, 1);
     toast({
       title: "Added to cart",
@@ -30,6 +39,13 @@ const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!user) {
+      toast({
+        title: "Please log in first",
+        description: "You need to log in before adding items to your wishlist.",
+      });
+      return;
+    }
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
       toast({
