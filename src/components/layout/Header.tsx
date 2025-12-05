@@ -256,7 +256,7 @@ const Header = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative hidden sm:flex"
+                    className="relative flex"
                     aria-label="Account"
                   >
                     {user.photoURL ? (
@@ -302,7 +302,7 @@ const Header = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/login" className="hidden sm:block">
+              <Link to="/login" className="block">
                 <Button
                   variant="ghost"
                   size="icon"
